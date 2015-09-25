@@ -1,39 +1,14 @@
 open Printf
 open Set
-(* Propositions are given as strings, but we identify
-   each one with a number instead of using the string. *)
-type propositionData = {
-  id: int;
-  name: string
-}
-
-(* Formulas are represented as parse trees. *)
-type parseTree =
-  | Empty of unit
-  | Parent of parseNode
-
-(* Each node contains a string and two children *)
-and parseNode = {
-  valstr: string;
-  lchild: parseTree;
-  rchild: parseTree
-}
-
-(* We keep a set of subformulae for each formula, so that we
-   can easily convert to CNF. *)
-module FSet = Set.Make(
-  struct
-    let compare =
-  Pervasives.compare
-    type t = parseTree
-  end)
+open Glbdefs
+open Dpll
 
 let propositionList : propositionData list ref = ref [] (* The list of propositions we are working with *)
-let clauses : FSet.t list ref = ref [] (* The list of clauses to resolve *)
 let nPropositions : int ref = ref 0 (* number of propositions we're working with *)
 let linenum : int ref  = ref 1 (* The line number we're parsing. *)
 let subformulae = ref FSet.empty (* A set of subformulae *)
 let clause = ref FSet.empty (* The current clause *)
+let clauses = ref FSetSet.empty (* The list of clauses to resolve *)
 let fhtbl = Hashtbl.create 5 (* Maps formulae to their set of subformulae *)
 
 (* Notify the user of errors. *)
@@ -175,7 +150,7 @@ let display_all_reps (f : parseTree) : unit =
   FSet.iter (fun x -> display_wff (rep x)) subs
 
 let update_clauses () : unit =
-  clauses := (!clauses)@[!clause];
+  clauses := FSetSet.add !clause !clauses;
   clause := FSet.empty
 
 (* Transforms each formula into CNF, so that we can easily evaluate
@@ -208,95 +183,73 @@ let enc (f : parseTree) : unit =
   	  	clause := FSet.add np !clause;
   	  	clause := FSet.add nrf2 !clause;
   	  	update_clauses ();
+
   	  	clause := FSet.add p !clause;
   	  	clause := FSet.add rf2 !clause;
   	  	update_clauses ()
-  	  	(*let c1 = Parent {valstr = "|"; lchild = np; rchild = nrf2} in
-  	  	let c2 = Parent {valstr = "|"; lchild = p; rchild = rf2} in
-  	  	Parent {valstr = "&"; lchild = c1; rchild = c2}*)
   	  end
   	  | "&" -> begin
         clause := FSet.add np !clause;
         clause := FSet.add rf1 !clause;
         update_clauses ();
+
         clause := FSet.add np !clause;
         clause := FSet.add rf2 !clause;
         update_clauses ();
+
         clause := FSet.add nrf1 !clause;
         clause := FSet.add nrf2 !clause;
         clause := FSet.add p !clause;
         update_clauses ()
-        (*let c1 = Parent {valstr = "|"; lchild = np; rchild = rf1} in
-        let c2 = Parent {valstr = "|"; lchild = np; rchild = rf2} in
-        let d1_c3 = Parent {valstr = "|"; lchild = nrf1; rchild = nrf2} in
-        let c3 = Parent {valstr = "|"; lchild = d1_c3; rchild = p} in
-        let conj1 = Parent {valstr = "&"; lchild = c1; rchild = c2} in
-        Parent {valstr = "&"; lchild = conj1; rchild = c3}*)
   	  end
   	  | "|" -> begin
         clause := FSet.add np !clause;
         clause := FSet.add rf1 !clause;
         clause := FSet.add rf2 !clause;
         update_clauses ();
-        (*let d1_c1 = Parent {valstr = "|"; lchild = np; rchild = rf1} in
-        let c1 = Parent {valstr = "|"; lchild = d1_c1; rchild = rf2} in*)
+
         clause := FSet.add nrf1 !clause;
         clause := FSet.add p !clause;
         update_clauses ();
-        (*let c2 = Parent {valstr = "|"; lchild = nrf1; rchild = p} in*)
+
         clause := FSet.add nrf2 !clause;
         clause := FSet.add p !clause;
         update_clauses ()
-        (*let c3 = Parent {valstr = "|"; lchild = nrf2; rchild = p} in
-        let conj1 = Parent {valstr = "&"; lchild = c1; rchild = c2} in
-        Parent {valstr = "&"; lchild = conj1; rchild = c3}*)
   	  end
       | "=>" -> begin
         clause := FSet.add np !clause;
         clause := FSet.add nrf1 !clause;
         clause := FSet.add rf2 !clause;
         update_clauses ();
-        (*let d1_c1 = Parent {valstr = "|"; lchild = np; rchild = nrf1} in
-        let c1 = Parent {valstr = "|"; lchild = d1_c1; rchild = rf2} in*)
+
         clause := FSet.add rf1 !clause;
         clause := FSet.add p !clause;
         update_clauses ();
-        (*let c2 = Parent {valstr = "|"; lchild = rf1; rchild = p} in*)
+
         clause := FSet.add nrf2 !clause;
         clause := FSet.add p !clause;
         update_clauses ()
-        (*let c3 = Parent {valstr = "|"; lchild = nrf2; rchild = p} in
-        let conj1 = Parent {valstr = "&"; lchild = c1; rchild = c2} in
-        Parent {valstr = "&"; lchild = conj1; rchild = c3}*)
       end
       | "<=>" -> begin
         clause := FSet.add np !clause;
         clause := FSet.add nrf1 !clause;
         clause := FSet.add rf2 !clause;
         update_clauses ();
-        (*let d1_c1 = Parent {valstr = "|"; lchild = np; rchild = nrf1} in
-        let c1 = Parent {valstr = "|"; lchild = d1_c1; rchild = rf2} in*)
+
         clause := FSet.add np !clause;
         clause := FSet.add rf1 !clause;
         clause := FSet.add nrf2 !clause;
         update_clauses ();
-        (*let d1_c2 = Parent {valstr = "|"; lchild = np; rchild = rf1} in
-        let c2 = Parent {valstr = "|"; lchild = d1_c2; rchild = nrf2} in*)
+
         clause := FSet.add p !clause;
         clause := FSet.add nrf1 !clause;
         clause := FSet.add nrf2 !clause;
         update_clauses ();
-        (*let d1_c3 = Parent {valstr = "|"; lchild = p; rchild = nrf1} in
-        let c3 = Parent {valstr = "|"; lchild = d1_c3; rchild = nrf2} in*)
+
         clause := FSet.add p !clause;
         clause := FSet.add rf1 !clause;
         clause := FSet.add rf2 !clause;
         update_clauses ()
-        (*let d1_c4 = Parent {valstr = "|"; lchild = p; rchild = rf1} in
-        let c4 = Parent {valstr = "|"; lchild = d1_c4; rchild = rf2} in
-        let conj1 = Parent {valstr = "&"; lchild = c1; rchild = c2} in
-        let conj2 = Parent {valstr = "&"; lchild = c3; rchild = c4} in
-        Parent {valstr = "&"; lchild = conj1; rchild = conj2}*)
       end
   	  | _ -> assert false
   	end
@@ -304,7 +257,7 @@ let enc (f : parseTree) : unit =
 
 let clear_clauses () : unit =
   clause := FSet.empty;
-  clauses := []
+  clauses := FSetSet.empty
 
 let cnf (f : parseTree) : unit =
   clear_clauses ();
@@ -316,4 +269,6 @@ let cnf (f : parseTree) : unit =
   clause := FSet.add (rep f) !clause;
   update_clauses ()
 
-let display_cnf_clauses () : unit = List.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) !clauses
+let display_cnf_clauses () : unit = FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) !clauses
+
+let eval_dpll () : bool = dpll(!clauses)
