@@ -59,8 +59,16 @@ wff : LTrue { atomic_subform true }
 | LFalse { atomic_subform false } 
 | LProposition { proposition_subform $1 }
 | LNegation wff { negation_subform $2 }
+
 | LOpenParen wff LConditional wff LCloseParen { binary_subform $2 $4 0 }
+| wff LConditional wff { binary_subform $1 $3 0 }
+
 | LOpenParen wff LBiconditional wff LCloseParen { binary_subform $2 $4 1 }
+| wff LBiconditional wff { binary_subform $1 $3 1 }
+
 | LOpenParen wff LAnd wff LCloseParen { binary_subform $2 $4 2 }
+| wff LAnd wff { binary_subform $1 $3 2 }
+
 | LOpenParen wff LOr wff LCloseParen { binary_subform $2 $4 3 }
+| wff LOr wff { binary_subform $1 $3 3 }
 ;
