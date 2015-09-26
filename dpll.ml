@@ -40,12 +40,45 @@ let cleanup (clauses : FSetSet.t) : FSetSet.t * bool =
     in
     let clauses_list = FSetSet.elements clauses in
     let cleaned_clauses_list = List.map cleanup_helper clauses_list in
-    printf("From cleanup:\n");
-    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) (FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list));
-    ((FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list)), true)
+    (*printf("From cleanup:\n");
+    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) (FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list));*)
+    ((FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list)), false)
   end
 
-let bcp (clauses : FSetSet.t) : FSetSet.t = clauses
+let rec bcp (clauses : FSetSet.t) : FSetSet.t =
+  printf("\n\nBefore resolution:\n");
+  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;
+  let is_unit_clause clause = (FSet.cardinal clause = 1) in
+  (* Separate unit clauses from non-unit clauses *)
+  let (unit_clauses, complex_clauses) = FSetSet.partition is_unit_clause clauses in
+  let unit_clauses_cleaned = FSetSet.remove (FSet.singleton true_const) unit_clauses in
+  (* If there are no unit clauses, then we can't resolve anything. *)
+  if (FSetSet.is_empty unit_clauses_cleaned) then clauses else begin
+    (* Choose an atom at random. *)
+    let unit_clause = FSetSet.choose unit_clauses_cleaned in
+    let atom = FSet.choose unit_clause in
+    (* We will resolve the negation of the chosen atom. *)
+    let to_resolve = match atom with
+      | Parent node -> begin match node.valstr with
+        | "~" -> node.rchild
+        | _ -> (Parent {valstr="~";lchild=Empty ();rchild=(Parent node)})
+      end
+      | Empty _ -> assert false
+    in
+    (* Find all complex clauses that have the resolvent. *)
+    let contains_resolvent clause = (FSet.mem to_resolve clause) in
+    let (has_resolvent, _) = FSetSet.partition contains_resolvent complex_clauses in
+    (* If no clauses contain the resolvent, try picking a different unit clause *)
+    let final = if (FSetSet.is_empty has_resolvent) then (FSetSet.add (FSet.singleton atom) (bcp (FSetSet.remove (FSet.singleton atom) clauses))) else begin
+      (* Otherwise, perform the resolution and return the updated clauses *)
+      let resolvent = FSetSet.choose has_resolvent in
+      let resolvent' = FSet.remove to_resolve resolvent in
+      FSetSet.remove (FSet.singleton atom) (FSetSet.add resolvent' (FSetSet.remove resolvent clauses))
+    end in
+    printf("\n\nAfter resolution:\n");
+    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) final;
+    (bcp final)
+  end
 
 let choose_var (clauses : FSetSet.t) : parseTree =
   false_const
