@@ -32,7 +32,7 @@ let cleanup (clauses : FSetSet.t) : FSetSet.t * bool =
   then (clauses, true)
   else begin
     let cleanup_helper clause =
-      if ((FSet.mem true_const clause) || (FSet.mem neg_false clause)) then (FSet.empty)
+      if ((FSet.mem true_const clause) || (FSet.mem neg_false clause)) then (FSet.singleton true_const)
       else begin
         let cleaned_clause = (FSet.remove neg_true clause) in
         FSet.remove false_const cleaned_clause
@@ -42,7 +42,7 @@ let cleanup (clauses : FSetSet.t) : FSetSet.t * bool =
     let cleaned_clauses_list = List.map cleanup_helper clauses_list in
     printf("From cleanup:\n");
     FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) (FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list));
-    ((FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list)), false)
+    ((FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list)), true)
   end
 
 let bcp (clauses : FSetSet.t) : FSetSet.t = clauses
@@ -54,6 +54,9 @@ let substitute (clauses : FSetSet.t) (atom : parseTree) (value : bool) : FSetSet
   clauses
 
 let rec dpll (clauses : FSetSet.t) : bool =
+  if ((clauses = (FSetSet.singleton (FSet.singleton true_const)))
+  || (clauses = (FSetSet.singleton (FSet.singleton neg_false))))
+  then true else begin
   let (cleaned, unsat) = cleanup clauses in
   if unsat then false else begin
     let clauses' = bcp cleaned in
@@ -75,4 +78,5 @@ let rec dpll (clauses : FSetSet.t) : bool =
       let atom = choose_var clauses in
       (dpll (substitute clauses' atom true)) || (dpll (substitute clauses' atom false))
     end
+  end
   end

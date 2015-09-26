@@ -1,1 +1,1 @@
-TRUE&FALSE;
+~TRUE;
