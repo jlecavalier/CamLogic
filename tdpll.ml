@@ -32,3 +32,44 @@ let display_wff (f : parseTree) : unit =
       end
   in
   printf "%s\n" (display_wff_helper f)
+
+let () =
+  printf "\n\n----TESTING BCP----\n\n";
+
+  clauses := FSetSet.add (FSet.singleton f1) !clauses;
+
+  clauses := FSetSet.add (FSet.singleton f6) !clauses;
+
+  clause := FSet.add f2 !clause;
+  clause := FSet.add f3 !clause;
+  clause := FSet.add f5 !clause;
+  clauses := FSetSet.add !clause !clauses;
+  clause := FSet.empty;
+
+  clause := FSet.add f2 !clause;
+  clause := FSet.add f3 !clause;
+  clause := FSet.add f6 !clause;
+  clauses := FSetSet.add !clause !clauses;
+  clause := FSet.empty;
+
+  printf "\nBEFORE BCP:\n";
+  display_cnf_clauses ();
+  clauses := bcp !clauses;
+  printf "\nAFTER BCP:\n";
+  display_cnf_clauses ();
+
+  clauses := FSetSet.empty;
+  clause := FSet.empty;
+
+  printf "\n\n----TESTING CHOOSE_VAR----\n\n";
+
+  clause := FSet.add f2 !clause;
+  clause := FSet.add f3 !clause;
+  clause := FSet.add f5 !clause;
+  clauses := FSetSet.add !clause !clauses;
+  clause := FSet.empty;
+
+  printf "\nCLAUSES:\n";
+  display_cnf_clauses ();
+  printf "\nCHOOSING VAR:\n";
+  display_wff (choose_var !clauses)

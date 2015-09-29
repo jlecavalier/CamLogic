@@ -46,14 +46,16 @@ let cleanup (clauses : FSetSet.t) : FSetSet.t * bool =
   end
 
 let rec bcp (clauses : FSetSet.t) : FSetSet.t =
-  printf("\n\nBefore resolution:\n");
-  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;
+  (*printf("\n\nBefore resolution:\n");
+  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;*)
   let is_unit_clause clause = (FSet.cardinal clause = 1) in
   (* Separate unit clauses from non-unit clauses *)
   let (unit_clauses, complex_clauses) = FSetSet.partition is_unit_clause clauses in
   let unit_clauses_cleaned = FSetSet.remove (FSet.singleton true_const) unit_clauses in
   (* If there are no unit clauses, then we can't resolve anything. *)
-  if (FSetSet.is_empty unit_clauses_cleaned) then clauses else begin
+  if ((FSetSet.is_empty unit_clauses_cleaned)
+  || (FSetSet.is_empty complex_clauses)) 
+  then clauses else begin
     (* Choose an atom at random. *)
     let unit_clause = FSetSet.choose unit_clauses_cleaned in
     let atom = FSet.choose unit_clause in
@@ -75,8 +77,8 @@ let rec bcp (clauses : FSetSet.t) : FSetSet.t =
       let resolvent' = FSet.remove to_resolve resolvent in
       FSetSet.remove (FSet.singleton atom) (FSetSet.add resolvent' (FSetSet.remove resolvent clauses))
     end in
-    printf("\n\nAfter resolution:\n");
-    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) final;
+    (*printf("\n\nAfter resolution:\n");
+    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) final;*)
     (bcp final)
   end
 
