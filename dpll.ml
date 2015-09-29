@@ -93,15 +93,40 @@ let choose_var (clauses : FSetSet.t) : parseTree =
   | Empty _ -> assert false
 
 let substitute (clauses : FSetSet.t) (atom : parseTree) (value : bool) : FSetSet.t =
-  clauses
+  let substitute_helper clause : FSet.t =
+    let substitute_helper_helper subclause : parseTree =
+      match subclause with
+      | Parent node -> begin match node.valstr with
+        | "~" -> if (node.rchild = atom) then begin
+          if value then neg_true else neg_false
+        end
+        else Parent node
+        | _ -> if ((Parent node) = atom) then begin
+          if value then true_const else false_const
+        end
+        else Parent node
+      end
+      | Empty () -> assert false
+    in
+    let subclause_list = FSet.elements clause in
+    let subclause_list' = List.map substitute_helper_helper subclause_list in
+    FSet.of_list subclause_list'
+  in
+  let clause_list = FSetSet.elements clauses in
+  let clause_list' = List.map substitute_helper clause_list in
+  FSetSet.of_list clause_list'
 
 let rec dpll (clauses : FSetSet.t) : bool =
+  printf("From dpll:\n");
+  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;
   if ((clauses = (FSetSet.singleton (FSet.singleton true_const)))
   || (clauses = (FSetSet.singleton (FSet.singleton neg_false))))
   then true else begin
   let (cleaned, unsat) = cleanup clauses in
   if unsat then false else begin
     let clauses' = bcp cleaned in
+    printf("From dpll (post cleaning):\n");
+    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses';
     if (FSetSet.is_empty clauses') then false
     else if ((FSetSet.cardinal clauses') = 1) then begin
   	  let clause = (FSetSet.choose clauses') in
@@ -112,12 +137,12 @@ let rec dpll (clauses : FSetSet.t) : bool =
   	    else (dpll (substitute clauses' atom true)) || (dpll (substitute clauses' atom false))
   	  end
       else begin
-        let atom = choose_var clauses' in
+        let atom = choose_var (FSetSet.remove (FSet.singleton true_const) clauses') in
         (dpll (substitute clauses' atom true)) || (dpll (substitute clauses' atom false))
       end
     end
     else begin
-      let atom = choose_var clauses in
+      let atom = choose_var (FSetSet.remove (FSet.singleton true_const) clauses) in
       (dpll (substitute clauses' atom true)) || (dpll (substitute clauses' atom false))
     end
   end

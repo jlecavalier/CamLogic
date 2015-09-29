@@ -64,12 +64,20 @@ let () =
   printf "\n\n----TESTING CHOOSE_VAR----\n\n";
 
   clause := FSet.add f2 !clause;
-  clause := FSet.add f3 !clause;
-  clause := FSet.add f5 !clause;
+  clause := FSet.add f4 !clause;
+  clause := FSet.add f6 !clause;
   clauses := FSetSet.add !clause !clauses;
   clause := FSet.empty;
 
   printf "\nCLAUSES:\n";
   display_cnf_clauses ();
   printf "\nCHOOSING VAR:\n";
-  display_wff (choose_var !clauses)
+  display_wff (choose_var !clauses);
+
+  printf "\n\n----TESTING SUBSTITUTE----\n\n";
+
+  printf "\nBEFORE SUBSTITUTION\n";
+  display_cnf_clauses ();
+  clauses := substitute !clauses f3 false;
+  printf "\nAFTER SUBSTITUTION\n";
+  display_cnf_clauses ();
