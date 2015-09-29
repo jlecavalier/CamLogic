@@ -81,7 +81,14 @@ let rec bcp (clauses : FSetSet.t) : FSetSet.t =
   end
 
 let choose_var (clauses : FSetSet.t) : parseTree =
-  false_const
+  let clause = FSetSet.choose clauses in
+  let subclause = FSet.choose clause in
+  match subclause with
+  | Parent node -> begin match node.valstr with
+    | "~" -> node.rchild
+    | _ -> Parent node
+  end
+  | Empty _ -> assert false
 
 let substitute (clauses : FSetSet.t) (atom : parseTree) (value : bool) : FSetSet.t =
   clauses
