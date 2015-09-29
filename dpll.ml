@@ -117,16 +117,16 @@ let substitute (clauses : FSetSet.t) (atom : parseTree) (value : bool) : FSetSet
   FSetSet.of_list clause_list'
 
 let rec dpll (clauses : FSetSet.t) : bool =
-  printf("From dpll:\n");
-  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;
+  (*printf("From dpll:\n");
+  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;*)
   if ((clauses = (FSetSet.singleton (FSet.singleton true_const)))
   || (clauses = (FSetSet.singleton (FSet.singleton neg_false))))
   then true else begin
   let (cleaned, unsat) = cleanup clauses in
   if unsat then false else begin
     let clauses' = bcp cleaned in
-    printf("From dpll (post cleaning):\n");
-    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses';
+    (*printf("From dpll (post cleaning):\n");
+    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses';*)
     if (FSetSet.is_empty clauses') then false
     else if ((FSetSet.cardinal clauses') = 1) then begin
   	  let clause = (FSetSet.choose clauses') in
