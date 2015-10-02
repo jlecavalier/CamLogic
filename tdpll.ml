@@ -81,3 +81,37 @@ let () =
   clauses := substitute !clauses f3 false;
   printf "\nAFTER SUBSTITUTION\n";
   display_cnf_clauses ();
+  
+  printf "\n\n----TESTING DPLL----\n\n";
+
+  clauses := FSetSet.add (FSet.singleton f1) !clauses;
+
+  clauses := FSetSet.add (FSet.singleton f6) !clauses;
+
+  clause := FSet.add f2 !clause;
+  clause := FSet.add f3 !clause;
+  clause := FSet.add f5 !clause;
+  clauses := FSetSet.add !clause !clauses;
+  clause := FSet.empty;
+
+  clause := FSet.add f2 !clause;
+  clause := FSet.add f3 !clause;
+  clause := FSet.add f6 !clause;
+  clauses := FSetSet.add !clause !clauses;
+  clause := FSet.empty;
+
+  printf "\nBEFORE DPLL:\n";
+  display_cnf_clauses ();
+  if dpll !clauses then begin
+	printf "\nSATISFIABLE\n";
+  end
+  else begin
+	printf "\nUNSATISFIABLE\n";
+  end
+  
+  printf "\nAFTER DPLL:\n";
+  
+  display_cnf_clauses ();
+
+  clauses := FSetSet.empty;
+  clause := FSet.empty;
