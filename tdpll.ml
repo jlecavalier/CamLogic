@@ -34,6 +34,7 @@ let display_wff (f : parseTree) : unit =
   printf "%s\n" (display_wff_helper f)
 
 let () =
+(*
   printf "\n\n----TESTING BCP----\n\n";
 
   clauses := FSetSet.add (FSet.singleton f1) !clauses;
@@ -81,7 +82,7 @@ let () =
   clauses := substitute !clauses f3 false;
   printf "\nAFTER SUBSTITUTION\n";
   display_cnf_clauses ();
-  
+  *)
   printf "\n\n----TESTING DPLL----\n\n";
 
   clauses := FSetSet.add (FSet.singleton f1) !clauses;
@@ -102,16 +103,18 @@ let () =
 
   printf "\nBEFORE DPLL:\n";
   display_cnf_clauses ();
-  if dpll !clauses then begin
-	printf "\nSATISFIABLE\n";
-  end
-  else begin
-	printf "\nUNSATISFIABLE\n";
-  end
+
+  (*let sat = (Dpll.dpll !clauses) in
+
+  ()
+
+  let str = if sat then "\nSATISFIABLE\n" else "\nUNSATISFIABLE\n" in
+
+  print_endline str;
   
   printf "\nAFTER DPLL:\n";
   
   display_cnf_clauses ();
 
   clauses := FSetSet.empty;
-  clause := FSet.empty;
+  clause := FSet.empty;*)
