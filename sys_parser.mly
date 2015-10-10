@@ -41,7 +41,7 @@ commands: command LSemiColon { }
    see if the wff is satisfiable.
    2. If the command is an entailment command, tell the
    parser to check the validity of the argument. */
-command: wff { store_formula $1; cnf $1; (*display_cnf_clauses ();*) if (eval_dpll ()) then Printf.printf("Satisfiable\n") else Printf.printf("Unsatisfiable\n") }
+command: wff { store_formula $1; cnf $1; Printf.printf "\nFormula:\n"; display_wff $1; (*display_cnf_clauses ();*) if (eval_dpll ()) then Printf.printf("\n") else Printf.printf("\n") }
 | wff_list LEntail wff { }
 ;
 

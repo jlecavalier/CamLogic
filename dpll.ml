@@ -123,66 +123,77 @@ let substitute (clauses : FSetSet.t) (atom : parseTree) (value : bool) : FSetSet
   let clause_list' = List.map substitute_helper clause_list in
   FSetSet.of_list clause_list'
 
-let rec dpll (clauses : FSetSet.t) : bool =
+let rec dpll (clauses : FSetSet.t) : (bool * (parseTree * bool) list)  =
+  let dpll_t_val = ref false in
+  let dpll_f_val = ref false in
   (*printf("From dpll:\n");
   FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;*)
   if ((clauses = (FSetSet.singleton (FSet.singleton true_const)))
   || (clauses = (FSetSet.singleton (FSet.singleton neg_false))))
-  then true else begin
+  then (true, []) else begin
   let (cleaned, unsat) = cleanup clauses in
-  if unsat then false else begin
+  if unsat then (false, []) else begin
     let clauses' = bcp cleaned in
     (*printf("From dpll (post cleaning):\n");
     FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses';*)
-    if (FSetSet.is_empty clauses') then false
+    if (FSetSet.is_empty clauses') then (false, [])
     else if ((FSetSet.cardinal clauses') = 1) then begin
   	  let clause = (FSetSet.choose clauses') in
   	  if ((FSet.cardinal clause) = 1) then begin
   	    let atom = FSet.choose clause in
-  	    if (atom = false_const) then false
-  	    else if (atom = true_const) then true
+  	    if (atom = false_const) then (false, [])
+  	    else if (atom = true_const) then (true, [])
   	    else begin 
-          let dpll_true = dpll (substitute clauses' atom true) in
-          let dpll_false = dpll (substitute clauses' atom false) in
+          let (dpll_true, _) = dpll (substitute clauses' atom true) in
           let _ = begin 
-            if dpll_true then begin
+            if ((dpll_true) && (not (List.mem (atom,true) !interpretation))) then begin
               interpretation := !interpretation @ [atom, true];
-            end
-            else if dpll_false then begin
-              interpretation := !interpretation @ [atom, false];
+              dpll_t_val := true;
+            end else begin
+              let (dpll_false, _) = dpll (substitute clauses' atom false) in
+              if (dpll_false) && (not (List.mem (atom,true) !interpretation)) then begin
+                interpretation := !interpretation @ [atom, false];
+                dpll_f_val := true;
+              end
             end
           end in
-          (dpll_true) || (dpll_false)
+          ((!dpll_t_val) || (!dpll_f_val)), !interpretation
         end
   	  end
       else begin
         let atom = choose_var (FSetSet.remove (FSet.singleton true_const) clauses') in
-        let dpll_true = dpll (substitute clauses' atom true) in
-          let dpll_false = dpll (substitute clauses' atom false) in
+        let (dpll_true, _) = dpll (substitute clauses' atom true) in
           let _ = begin 
-            if dpll_true then begin
+            if ((dpll_true) && (not (List.mem (atom,true) !interpretation))) then begin
               interpretation := !interpretation @ [atom, true];
-            end
-            else if dpll_false then begin
-              interpretation := !interpretation @ [atom, false];
+              dpll_t_val := true;
+            end else begin
+              let (dpll_false, _) = dpll (substitute clauses' atom false) in
+              if (dpll_false) && (not (List.mem (atom,true) !interpretation)) then begin
+                interpretation := !interpretation @ [atom, false];
+                dpll_f_val := true;
+              end
             end
           end in
-          (dpll_true) || (dpll_false)
+          ((!dpll_t_val) || (!dpll_f_val)), !interpretation
       end
     end
     else begin
       let atom = choose_var (FSetSet.remove (FSet.singleton true_const) clauses) in
-      let dpll_true = dpll (substitute clauses' atom true) in
-          let dpll_false = dpll (substitute clauses' atom false) in
+      let (dpll_true, _) = dpll (substitute clauses' atom true) in
           let _ = begin 
-            if dpll_true then begin
+            if ((dpll_true) && (not (List.mem (atom,true) !interpretation))) then begin
               interpretation := !interpretation @ [atom, true];
-            end
-            else if dpll_false then begin
-              interpretation := !interpretation @ [atom, false];
+              dpll_t_val := true;
+            end else begin
+              let (dpll_false, _) = dpll (substitute clauses' atom false) in
+              if (dpll_false) && (not (List.mem (atom,true) !interpretation)) then begin
+                interpretation := !interpretation @ [atom, false];
+                dpll_f_val := true;
+              end
             end
           end in
-          (dpll_true) || (dpll_false)
+          ((!dpll_t_val) || (!dpll_f_val)), !interpretation
     end
   end
   end

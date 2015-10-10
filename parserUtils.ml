@@ -2,6 +2,7 @@ open Printf
 open Set
 open Glbdefs
 open Dpll
+open Interpretation
 
 let propositionList : propositionData list ref = ref [] (* The list of propositions we are working with *)
 let nPropositions : int ref = ref 0 (* number of propositions we're working with *)
@@ -271,4 +272,8 @@ let cnf (f : parseTree) : unit =
 
 let display_cnf_clauses () : unit = FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) !clauses
 
-let eval_dpll () : bool = dpll(!clauses)
+let eval_dpll () : bool = 
+  let (sat, interpretation) = dpll(!clauses) in
+  if sat then printf("\nSatisfiable\n") else printf("\nUnsatisfiable\n");
+  display_interpretation interpretation sat;
+  sat
