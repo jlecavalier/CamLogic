@@ -42,14 +42,14 @@ let cleanup (clauses : FSetSet.t) : FSetSet.t * bool =
     in
     let clauses_list = FSetSet.elements clauses in
     let cleaned_clauses_list = List.map cleanup_helper clauses_list in
-    printf("From cleanup:\n");
-    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) ((FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list)));
+    (*printf("From cleanup:\n");
+    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) ((FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list)));*)
     ((FSetSet.remove FSet.empty (FSetSet.of_list cleaned_clauses_list)), false)
   end
 
 let rec bcp (clauses : FSetSet.t) : FSetSet.t =
-  printf("\n\nBefore resolution:\n");
-  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;
+  (*printf("\n\nBefore resolution:\n");
+  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;*)
   let is_unit_clause clause = (FSet.cardinal clause = 1) in
   (* Separate unit clauses from non-unit clauses *)
   let (unit_clauses, complex_clauses') = FSetSet.partition is_unit_clause clauses in
@@ -84,8 +84,8 @@ let rec bcp (clauses : FSetSet.t) : FSetSet.t =
       let resolved = FSetSet.of_list resolved_list in
       bcp (FSetSet.remove (FSet.singleton atom) (FSetSet.union (FSetSet.diff clauses' has_resolvent) resolved))
     end in
-    printf("\n\nAfter resolution:\n");
-    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) final;
+    (*printf("\n\nAfter resolution:\n");
+    FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) final;*)
     final
   end
 
@@ -124,8 +124,8 @@ let substitute (clauses : FSetSet.t) (atom : parseTree) (value : bool) : FSetSet
   FSetSet.of_list clause_list'
 
 let rec dpll (clauses : FSetSet.t) : bool =
-  printf("From dpll:\n");
-  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;
+  (*printf("From dpll:\n");
+  FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) clauses;*)
   if ((clauses = (FSetSet.singleton (FSet.singleton true_const)))
   || (clauses = (FSetSet.singleton (FSet.singleton neg_false))))
   then true else begin
