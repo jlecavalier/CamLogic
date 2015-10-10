@@ -157,12 +157,32 @@ let rec dpll (clauses : FSetSet.t) : bool =
   	  end
       else begin
         let atom = choose_var (FSetSet.remove (FSet.singleton true_const) clauses') in
-        (dpll (substitute clauses' atom true)) || (dpll (substitute clauses' atom false))
+        let dpll_true = dpll (substitute clauses' atom true) in
+          let dpll_false = dpll (substitute clauses' atom false) in
+          let _ = begin 
+            if dpll_true then begin
+              interpretation := !interpretation @ [atom, true];
+            end
+            else if dpll_false then begin
+              interpretation := !interpretation @ [atom, false];
+            end
+          end in
+          (dpll_true) || (dpll_false)
       end
     end
     else begin
       let atom = choose_var (FSetSet.remove (FSet.singleton true_const) clauses) in
-      (dpll (substitute clauses' atom true)) || (dpll (substitute clauses' atom false))
+      let dpll_true = dpll (substitute clauses' atom true) in
+          let dpll_false = dpll (substitute clauses' atom false) in
+          let _ = begin 
+            if dpll_true then begin
+              interpretation := !interpretation @ [atom, true];
+            end
+            else if dpll_false then begin
+              interpretation := !interpretation @ [atom, false];
+            end
+          end in
+          (dpll_true) || (dpll_false)
     end
   end
   end
