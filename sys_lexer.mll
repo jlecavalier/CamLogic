@@ -9,6 +9,7 @@ let whitespace = [' ' '\t']
 rule lexer = parse
   | "|=" { LEntail }
   | "entails" { LEntail }
+  | "#" { lineComments lexbuf }
   | whitespace { lexer lexbuf }
   | '\n' { incr linenum; lexer lexbuf }
   | "(" { LOpenParen }
@@ -27,3 +28,7 @@ rule lexer = parse
   | eof { LEnd }
   | ['A'-'Z'] { LProposition (Lexing.lexeme lexbuf) }
   | _ as x { failwith (sprintf "Error: I don't know what %c means, but I saw it on line %d" x !linenum) }
+
+  and lineComments = parse  
+    | '\n' {incr ParserUtils.linenum; lexer lexbuf }
+    | _ { lineComments lexbuf }
