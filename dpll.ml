@@ -9,6 +9,8 @@ let neg_true = (Parent {valstr = "~"; lchild = Empty (); rchild = true_const})
 
 let interpretation : (parseTree * bool) list ref = ref []
 
+let clear_interpretation () = interpretation := []
+
 let display_wff (f : parseTree) : unit =
   (*printf "The formula at line %d is:\n\n" !linenum;*)
   let rec display_wff_helper (f : parseTree) : string =

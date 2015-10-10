@@ -273,6 +273,7 @@ let cnf (f : parseTree) : unit =
 let display_cnf_clauses () : unit = FSetSet.iter (fun x -> (printf "clause:\n"; (FSet.iter display_wff x); printf "\n")) !clauses
 
 let eval_dpll () : bool = 
+  clear_interpretation ();
   let (sat, interpretation) = dpll(!clauses) in
   if sat then printf("\nSatisfiable\n") else printf("\nUnsatisfiable\n");
   display_interpretation interpretation sat;
