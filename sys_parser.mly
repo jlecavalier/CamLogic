@@ -42,7 +42,7 @@ commands: command LSemiColon { }
    2. If the command is an entailment command, tell the
    parser to check the validity of the argument. */
 command: wff { store_formula $1; cnf $1; Printf.printf "\nFormula:\n"; display_wff $1; (*display_cnf_clauses ();*) if (eval_dpll ()) then Printf.printf("\n") else Printf.printf("\n") }
-| wff_list LEntail wff { }
+| wff_list LEntail wff { let enformula = entailment_to_formula $1 $3 in store_formula enformula; cnf enformula; Printf.printf "\nPremises:\n"; List.iter display_wff $1; Printf.printf "\nConclusion:\n"; display_wff $3; if eval_entail () then Printf.printf("\n") else Printf.printf("\n") }
 ;
 
 /* Lists of wffs are either empty, contain a single
