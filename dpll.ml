@@ -158,8 +158,8 @@ let rec dpll (clauses : FSetSet.t) : (bool * (parseTree * bool) list)  =
   	  let clause = (FSetSet.choose clauses') in
   	  if ((FSet.cardinal clause) = 1) then begin
   	    let atom = FSet.choose clause in
-  	    if (atom = false_const) or (atom = neg_true) then (false, [])
-  	    else if (atom = true_const) or (atom = neg_false) then (true, [])
+  	    if (atom = false_const) || (atom = neg_true) then (false, [])
+  	    else if (atom = true_const) || (atom = neg_false) then (true, [])
   	    else begin 
           (*printf "\nSubstitute: %s |--> TRUE\n\n" (wff_to_string atom);*)
           let (dpll_true, _) = dpll (substitute clauses' atom true) in

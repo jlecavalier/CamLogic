@@ -26,10 +26,12 @@ let isolate_vars (pair : (parseTree * bool)) : bool =
   let str = wff_to_string pt in
   (String.length str) = 1
 
-let display_interpretation (interpretation : (parseTree * bool) list) (sat : bool) : unit =
+let display_interpretation (interpretation : (parseTree * bool) list) (sat : bool) (mode : bool) : unit =
   if sat then begin
   	let clean_interp = List.sort_uniq Pervasives.compare interpretation in
   	let final = List.filter isolate_vars clean_interp in
-  	printf "\nSatisfying interpretation:\n";
-  	List.iter to_str final
+    let note = if mode then "\nSatisfying interpretation:\n" 
+    else "\nCounterexample:\n" in
+    printf "%s" note;
+    List.iter to_str final
   end

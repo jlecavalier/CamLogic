@@ -276,13 +276,22 @@ let eval_dpll () : bool =
   clear_interpretation ();
   let (sat, interpretation) = dpll(!clauses) in
   if sat then printf("\nSatisfiable\n") else printf("\nUnsatisfiable\n");
-  display_interpretation interpretation sat;
+  display_interpretation interpretation sat true;
   sat
 
 let entailment_to_formula (premises : parseTree list) (conclusion : parseTree) : parseTree =
-  let conjoin f1 f2 = (Parent {valstr = "&"; lchild = f1; rchild = f2}) in
-  let prems = if (premises = []) then (Parent {valstr="TRUE";lchild= Empty ();rchild = Empty ()}) 
+  let conjoin f1 f2 = 
+    let subform = (Parent {valstr = "&"; lchild = f1; rchild = f2}) in
+    subformulae := (FSet.add subform !subformulae);
+    subform
+  in
+  let prems = if (premises = []) then begin
+    let p = (Parent {valstr="TRUE";lchild=Empty ();rchild=Empty ()}) in
+    subformulae := FSet.add p !subformulae;
+    p
+  end 
   else List.fold_left conjoin (List.hd premises) (List.tl premises) in
+  subformulae := FSet.add (Parent {valstr="~";lchild=Empty ();rchild=conclusion}) !subformulae;
   display_wff (conjoin prems (Parent {valstr="~";lchild=Empty ();rchild=conclusion}));
   conjoin prems (Parent {valstr="~";lchild=Empty ();rchild=conclusion})
 
@@ -290,7 +299,7 @@ let eval_entail () : bool =
   clear_interpretation ();
   let (sat, interpretation) = dpll(!clauses) in
   if sat then printf("\nInvalid argument\n") else printf("\nValid argument\n");
-  display_interpretation interpretation sat;
+  display_interpretation interpretation sat false;
   sat
 
 
